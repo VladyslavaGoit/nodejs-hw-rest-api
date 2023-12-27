@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import { nanoid } from "nanoid";
 import path from "path";
 
-export const contactsPath = path.resolve("db", "contacts.json");
+export const contactsPath = path.resolve("models", "contacts", "contacts.json");
 
 export const listContacts = async () => {
   const data = await fs.readFile(contactsPath);
@@ -26,7 +26,7 @@ export const removeContact = async (contactId) => {
   return deleteContact;
 };
 
-export const addContact = async (name, email, phone) => {
+export const addContact = async ({ name, email, phone }) => {
   const contacts = await listContacts();
   const newContact = {
     id: nanoid(),
@@ -39,7 +39,16 @@ export const addContact = async (name, email, phone) => {
   return newContact;
 };
 
-const updateContact = async (contactId, body) => {};
+const updateContact = async (contactId, body) => {
+  const contacts = await listContacts();
+  const index = contacts.findIndex((item) => item.id === contactId);
+  if (index === -1) {
+    return null;
+  }
+  contacts[index] = { ...contacts[index], ...body };
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  return contacts[index];
+};
 
 export default {
   listContacts,
